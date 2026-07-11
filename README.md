@@ -115,6 +115,36 @@ mypy --ignore-missing-imports .
 
 **Workflow**: Never commit directly to `main`. Create a feature branch, open a PR, and merge only after CI passes.
 
+## Deploy to PythonAnywhere (Free)
+
+1. Sign up at [pythonanywhere.com](https://www.pythonanywhere.com)
+
+2. Open a **Bash console** and run:
+   ```bash
+   git clone https://github.com/dev-shridhar/dumbledore.git
+   cd dumbledore
+   pip3 install -r requirements.txt --user
+   ```
+
+3. Go to **Account → Tokens** and create an API token
+
+4. Go to **Consoles → New console → Python 3.10**
+
+5. In the Python console, set your environment variables:
+   ```bash
+   export TELEGRAM_BOT_TOKEN="your_token_here"
+   export GROQ_API_KEY="your_groq_key_here"
+   ```
+
+6. Run the bot:
+   ```bash
+   python3 run_bot.py
+   ```
+
+7. To keep it running 24/7, use **Tasks** tab to schedule the bot to restart
+
+**Note:** PythonAnywhere free tier has CPU time limits. For a production bot, consider Oracle Cloud free VPS or Render.
+
 ## License
 
 MIT
