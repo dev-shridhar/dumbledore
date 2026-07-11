@@ -61,8 +61,8 @@ def deploy(token: str, user: str) -> None:
              data=json.dumps({"command": "pkill -f run_bot.py || true"}))
 
     # 5. Start bot
-    api_call(user, token, "bash/",
-             data=json.dumps({"command": "cd ~/dumbledore && nohup python3 run_bot.py > ~/dumbledore/bot.log 2>&1 &"}))
+    start_cmd = "cd ~/dumbledore && nohup python3 run_bot.py > ~/dumbledore/bot.log 2>&1 &"
+    api_call(user, token, "bash/", data=json.dumps({"command": start_cmd}))
 
     print("\n✅ Deployment complete!")
 
