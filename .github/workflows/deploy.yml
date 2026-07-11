@@ -95,67 +95,45 @@ jobs:
             echo ""
           done
 
-      - name: Install dependencies via console
+      - name: Upload .env to PythonAnywhere
         env:
           PA_TOKEN: ${{ secrets.PA_TOKEN }}
           PA_USER: ${{ secrets.PA_USER }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          BOT_USERNAME: ${{ secrets.BOT_USERNAME }}
         run: |
           API="https://www.pythonanywhere.com/api/v0/user/${PA_USER}"
           AUTH="Authorization: Token ${PA_TOKEN}"
           REMOTE_DIR="/home/${PA_USER}/dumbledore"
 
-          echo "📥 Creating console..."
-          CONSOLE=$(curl -s -X POST "${API}/consoles/" \
+          echo "🔐 Uploading .env file..."
+          cat > /tmp/.env << EOF
+          TELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}
+          GROQ_API_KEY=${GROQ_API_KEY}
+          BOT_USERNAME=${BOT_USERNAME}
+          EOF
+          curl -s -X POST "${API}/files/path${REMOTE_DIR}/.env" \
             -H "${AUTH}" \
-            -H "Content-Type: application/json" \
-            -d '{"executable": "bash"}')
-          CONSOLE_ID=$(echo "$CONSOLE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
-          echo "Console ID: ${CONSOLE_ID}"
-
-          echo "📥 Installing dependencies..."
-          curl -s -X POST "${API}/consoles/${CONSOLE_ID}/send_input/" \
-            -H "${AUTH}" \
-            -H "Content-Type: application/json" \
-            -d "{\"input\": \"pip3 install -r ${REMOTE_DIR}/requirements.txt --user\\n\"}"
-          sleep 10
-
-          echo "Console output:"
-          curl -s "${API}/consoles/${CONSOLE_ID}/get_latest_output/" \
-            -H "${AUTH}"
-
-          echo ""
-          echo "🔐 Creating .env file..."
-          ENVEOF="TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
-          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
-          BOT_USERNAME=${{ secrets.BOT_USERNAME }}"
-          curl -s -X POST "${API}/consoles/${CONSOLE_ID}/send_input/" \
-            -H "${AUTH}" \
-            -H "Content-Type: application/json" \
-            -d "{\"input\": \"cat > ${REMOTE_DIR}/.env << 'ENVEOF'\\n${ENVEOF}\\nENVEOF\\n\"}"
-          sleep 2
-
-          echo "🔄 Restarting bot..."
-          curl -s -X POST "${API}/consoles/${CONSOLE_ID}/send_input/" \
-            -H "${AUTH}" \
-            -H "Content-Type: application/json" \
-            -d '{"input": "pkill -f run_bot.py || true\n"}'
-          sleep 2
-
-          curl -s -X POST "${API}/consoles/${CONSOLE_ID}/send_input/" \
-            -H "${AUTH}" \
-            -H "Content-Type: application/json" \
-            -d "{\"input\": \"cd ${REMOTE_DIR} && nohup python3 run_bot.py > bot.log 2>&1 &\\n\"}"
-          sleep 2
-
-          echo ""
-          echo "Final console output:"
-          curl -s "${API}/consoles/${CONSOLE_ID}/get_latest_output/" \
-            -H "${AUTH}"
+            -F "content=@/tmp/.env"
           echo ""
 
-          echo "🧹 Cleaning up console..."
-          curl -s -X DELETE "${API}/consoles/${CONSOLE_ID}/" \
-            -H "${AUTH}"
-
           echo ""
-          echo "✅ Deployment complete!"
+          echo "✅ Files uploaded to PythonAnywhere!"
+          echo ""
+          echo "=========================================="
+          echo "  NEXT STEPS (one-time manual setup):"
+          echo "=========================================="
+          echo ""
+          echo "1. Log into PythonAnywhere: https://www.pythonanywhere.com/login/"
+          echo "2. Open a Bash console from the Dashboard"
+          echo "3. Run these commands:"
+          echo ""
+          echo "   pip3 install -r ~/dumbledore/requirements.txt --user"
+          echo "   cd ~/dumbledore && nohup python3 run_bot.py > bot.log 2>&1 &"
+          echo ""
+          echo "4. To check bot status: tail -f ~/dumbledore/bot.log"
+          echo "5. To restart after future deploys:"
+          echo "   pkill -f run_bot.py || true"
+          echo "   cd ~/dumbledore && nohup python3 run_bot.py > bot.log 2>&1 &"
+          echo "=========================================="
