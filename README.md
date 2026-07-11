@@ -115,6 +115,47 @@ mypy --ignore-missing-imports .
 
 **Workflow**: Never commit directly to `main`. Create a feature branch, open a PR, and merge only after CI passes.
 
+## Deploy to PythonAnywhere (Free)
+
+### Option 1: Manual Deploy
+1. Sign up at [pythonanywhere.com](https://www.pythonanywhere.com)
+2. Open a **Bash console** and run:
+   ```bash
+   git clone https://github.com/dev-shridhar/dumbledore.git
+   cd dumbledore
+   pip3 install -r requirements.txt --user
+   ```
+3. Go to **Account → Environment variables** and add:
+   - `TELEGRAM_BOT_TOKEN` — from [@BotFather](https://t.me/BotFather)
+   - `GROQ_API_KEY` — from [console.groq.com](https://console.groq.com)
+4. Run: `python3 run_bot.py`
+
+### Option 2: Auto Deploy via GitHub Actions (Recommended)
+
+**Step 1: Get PythonAnywhere API Token**
+1. Go to [pythonanywhere.com/account](https://www.pythonanywhere.com/account/#api_token)
+2. Click "Create new API token"
+3. Copy the token
+
+**Step 2: Add GitHub Secrets**
+Go to your repo → **Settings → Secrets and variables → Actions → New repository secret**:
+
+| Secret Name | Value |
+|-------------|-------|
+| `PA_TOKEN` | Your PythonAnywhere API token |
+| `PA_USER` | Your PythonAnywhere username |
+| `TELEGRAM_BOT_TOKEN` | Your Telegram bot token |
+| `GROQ_API_KEY` | Your Groq API key |
+| `BOT_USERNAME` | Your bot's @username |
+
+**Step 3: Deploy**
+Just merge a PR to `main` — CI/CD runs automatically!
+
+### Environment Variables Summary
+- **Local dev:** Create `.env` file (not committed)
+- **PythonAnywhere:** Set in Account → Environment variables
+- **GitHub Actions:** Set in Settings → Secrets
+
 ## License
 
 MIT

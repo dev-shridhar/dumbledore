@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 
 from dotenv import load_dotenv
 
+# Load .env file for local development
+# On PythonAnywhere / GitHub Actions, set env vars directly
 load_dotenv()
 
 
