@@ -1,6 +1,9 @@
-import httpx
+from __future__ import annotations
+
 import logging
+
 from openai import OpenAI
+
 from config import config
 
 logger = logging.getLogger(__name__)
