@@ -3,10 +3,12 @@
 Deploy script for PythonAnywhere using their REST API.
 Usage: python deploy.py --token <PA_TOKEN> --user <PA_USER>
 """
+from __future__ import annotations
+
 import argparse
+import json
 import os
 import subprocess
-import sys
 
 
 def api_call(user: str, token: str, endpoint: str, method: str = "GET",
@@ -24,10 +26,15 @@ def deploy(token: str, user: str) -> None:
 
     # 1. Upload files via tar
     print("\n📦 Uploading files...")
-    subprocess.run("find . -type f -not -path './.git/*' -not -path './.github/*' "
-                    "-not -name '.DS_Store' -exec cp --parents {} /tmp/pa_upload/ \\;",
-                    shell=True, check=True)
-    subprocess.run("tar czf /tmp/dumbledore.tar.gz .", shell=True, cwd="/tmp/pa_upload", check=True)
+    subprocess.run(
+        "find . -type f -not -path './.git/*' -not -path './.github/*' "
+        "-not -name '.DS_Store' -exec cp --parents {} /tmp/pa_upload/ \\;",
+        shell=True, check=True,
+    )
+    subprocess.run(
+        "tar czf /tmp/dumbledore.tar.gz .",
+        shell=True, cwd="/tmp/pa_upload", check=True,
+    )
     with open("/tmp/dumbledore.tar.gz", "rb") as f:
         api_call(user, token, "files/path/~/",
                  method="POST", data=f.read(), content_type="application/gzip")
@@ -35,25 +42,27 @@ def deploy(token: str, user: str) -> None:
     # 2. Install dependencies
     print("\n📥 Installing dependencies...")
     api_call(user, token, "bash/",
-             data=f'{{"command": "pip3 install -r ~/dumbledore/requirements.txt --user"}}')
+             data=json.dumps({"command": "pip3 install -r ~/dumbledore/requirements.txt --user"}))
 
     # 3. Create .env file
     print("\n🔐 Setting environment variables...")
-    env_content = (f"TELEGRAM_BOT_TOKEN={os.getenv('TELEGRAM_BOT_TOKEN', '')}\n"
-                   f"GROQ_API_KEY={os.getenv('GROQ_API_KEY', '')}\n"
-                   f"BOT_USERNAME={os.getenv('BOT_USERNAME', '')}\n")
+    env_content = (
+        f"TELEGRAM_BOT_TOKEN={os.getenv('TELEGRAM_BOT_TOKEN', '')}\n"
+        f"GROQ_API_KEY={os.getenv('GROQ_API_KEY', '')}\n"
+        f"BOT_USERNAME={os.getenv('BOT_USERNAME', '')}\n"
+    )
     escaped_env = env_content.replace("'", "'\\''")
-    api_call(user, token, "bash/",
-             data=f'{{"command": "cat > ~/dumbledore/.env << \'ENVEOF\'\\n{escaped_env}ENVEOF"}}')
+    cmd = f"cat > ~/dumbledore/.env << 'ENVEOF'\n{escaped_env}ENVEOF"
+    api_call(user, token, "bash/", data=json.dumps({"command": cmd}))
 
     # 4. Kill existing process
     print("\n🔄 Restarting bot...")
     api_call(user, token, "bash/",
-             data='{"command": "pkill -f run_bot.py || true"}')
+             data=json.dumps({"command": "pkill -f run_bot.py || true"}))
 
     # 5. Start bot
     api_call(user, token, "bash/",
-             data='{"command": "cd ~/dumbledore && nohup python3 run_bot.py > ~/dumbledore/bot.log 2>&1 &"}')
+             data=json.dumps({"command": "cd ~/dumbledore && nohup python3 run_bot.py > ~/dumbledore/bot.log 2>&1 &"}))
 
     print("\n✅ Deployment complete!")
 
