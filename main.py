@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import logging
 
 from telegram import Update
@@ -19,6 +21,8 @@ logger = logging.getLogger(__name__)
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not update.message:
+        return
     await update.message.reply_text(
         "ArchBot — System Design / DSA / Architecture Expert\n\n"
         "I challenge your thinking, I don't give easy answers.\n\n"
@@ -33,41 +37,51 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
 
 
 async def handle_ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not update.message:
+        return
     if not context.args:
         await update.message.reply_text("Usage: `/ask <your question>`")
         return
 
     query = " ".join(context.args)
-    ctx = memory.get_context(update.effective_chat.id)
+    chat_id = update.effective_chat
+    if not chat_id:
+        return
 
+    ctx = memory.get_context(chat_id.id)
     messages = build_messages("ask", ctx, query)
     response = chat(messages)
-
     await update.message.reply_text(response)
 
 
 async def handle_conclude(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_chat.id
-    ctx = memory.get_context(chat_id)
+    if not update.message:
+        return
+    chat_id = update.effective_chat
+    if not chat_id:
+        return
 
+    ctx = memory.get_context(chat_id.id)
     if not ctx:
         await update.message.reply_text("No conversation history to conclude.")
         return
 
     messages = build_messages("conclude", ctx)
     response = chat(messages)
-
     await update.message.reply_text(response)
 
 
 async def handle_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not update.message or not update.effective_chat:
+        return
     memory.clear(update.effective_chat.id)
     await update.message.reply_text("Memory cleared for this group.")
 
 
 async def handle_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_chat.id
-    count = memory.get_message_count(chat_id)
+    if not update.message or not update.effective_chat:
+        return
+    count = memory.get_message_count(update.effective_chat.id)
     await update.message.reply_text(
         f"Messages in buffer: {count}\n"
         f"Prompt version: {get_prompt_version()}\n"
@@ -76,22 +90,27 @@ async def handle_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
 
 
 async def handle_prompts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not update.message:
+        return
     await update.message.reply_text(f"Current prompt version: {get_prompt_version()}")
 
 
 async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     msg = update.message
-    if not msg or not msg.text or msg.from_user.is_bot:
+    if not msg or not msg.text or not msg.from_user or not msg.chat:
+        return
+    if msg.from_user.is_bot:
         return
 
     sender = msg.from_user.first_name or msg.from_user.username or "Unknown"
     memory.add_message(msg.chat.id, sender, msg.text, msg.message_id)
 
-    if msg.reply_to_message and not msg.reply_to_message.from_user.is_bot:
-        ctx = memory.get_context(msg.chat.id)
-        messages = build_messages("challenge", ctx, f"The last message says: {msg.text}")
-        response = chat(messages)
-        await msg.reply_text(response)
+    if msg.reply_to_message and msg.reply_to_message.from_user:
+        if not msg.reply_to_message.from_user.is_bot:
+            ctx = memory.get_context(msg.chat.id)
+            messages = build_messages("challenge", ctx, f"The last message says: {msg.text}")
+            response = chat(messages)
+            await msg.reply_text(response)
 
 
 def main() -> None:
