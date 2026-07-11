@@ -34,56 +34,128 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Deploy to PythonAnywhere
+      - name: Validate secrets
         env:
           PA_TOKEN: ${{ secrets.PA_TOKEN }}
           PA_USER: ${{ secrets.PA_USER }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
-          BOT_USERNAME: ${{ secrets.BOT_USERNAME }}
+        run: |
+          echo "--- Secret validation ---"
+          if [ -z "${PA_TOKEN}" ]; then
+            echo "ERROR: PA_TOKEN secret is not set"
+            exit 1
+          fi
+          if [ -z "${PA_USER}" ]; then
+            echo "ERROR: PA_USER secret is not set"
+            exit 1
+          fi
+          echo "PA_USER length: ${#PA_USER} chars (set)"
+          echo "PA_TOKEN length: ${#PA_TOKEN} chars (set)"
+
+      - name: Test API connection
+        env:
+          PA_TOKEN: ${{ secrets.PA_TOKEN }}
+          PA_USER: ${{ secrets.PA_USER }}
+        run: |
+          API="https://www.pythonanywhere.com/api/v0/user/${PA_USER}"
+          echo "Testing API connection to: ${API}/cpu/"
+          RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" \
+            -H "Authorization: Token ${PA_TOKEN}" \
+            "${API}/cpu/")
+          HTTP_CODE=$(echo "$RESPONSE" | grep "HTTP_CODE:" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | sed '/HTTP_CODE:/d')
+          echo "HTTP status: ${HTTP_CODE}"
+          echo "Response: ${BODY}"
+          if [ "${HTTP_CODE}" != "200" ]; then
+            echo "ERROR: API connection failed. Check PA_TOKEN and PA_USER."
+            echo "If your account is on EU servers, you may need to update the host."
+            exit 1
+          fi
+
+      - name: Upload files to PythonAnywhere
+        env:
+          PA_TOKEN: ${{ secrets.PA_TOKEN }}
+          PA_USER: ${{ secrets.PA_USER }}
         run: |
           API="https://www.pythonanywhere.com/api/v0/user/${PA_USER}"
           AUTH="Authorization: Token ${PA_TOKEN}"
+          REMOTE_DIR="/home/${PA_USER}/dumbledore"
 
-          echo "📦 Uploading files..."
-          for file in $(find . -type f -not -path './.git/*' -not -path './.github/*'); do
-            remote_path="/home/${PA_USER}/dumbledore/${file#./}"
-            mkdir -p "$(dirname /tmp/pa_upload/${remote_path})"
-            cp "$file" "/tmp/pa_upload/${remote_path}"
+          echo "📦 Uploading files to ${REMOTE_DIR}/..."
+          for file in $(find . -type f \
+              -not -path './.git/*' \
+              -not -path './.github/*' \
+              -not -name '.DS_Store' \
+              -not -name '*.pyc' \
+              -not -path './__pycache__/*'); do
+            remote_path="${REMOTE_DIR}/${file#./}"
+            echo "  Uploading: ${file} -> ${remote_path}"
+            curl -s -X POST "${API}/files/path${remote_path}" \
+              -H "${AUTH}" \
+              -F "content=@${file}"
+            echo ""
           done
 
-          cd /tmp/pa_upload
-          tar czf /tmp/dumbledore.tar.gz .
-          curl -s -X POST "${API}/files/path/~/" \
-            -H "${AUTH}" \
-            -H "Content-Type: application/gzip" \
-            --data-binary @/tmp/dumbledore.tar.gz
+      - name: Install dependencies via console
+        env:
+          PA_TOKEN: ${{ secrets.PA_TOKEN }}
+          PA_USER: ${{ secrets.PA_USER }}
+        run: |
+          API="https://www.pythonanywhere.com/api/v0/user/${PA_USER}"
+          AUTH="Authorization: Token ${PA_TOKEN}"
+          REMOTE_DIR="/home/${PA_USER}/dumbledore"
 
-          echo ""
-          echo "📥 Installing dependencies..."
-          curl -s -X POST "${API}/bash/" \
+          echo "📥 Creating console..."
+          CONSOLE=$(curl -s -X POST "${API}/consoles/" \
             -H "${AUTH}" \
             -H "Content-Type: application/json" \
-            -d '{"command": "pip3 install -r ~/dumbledore/requirements.txt --user"}'
+            -d '{"executable": "bash"}')
+          CONSOLE_ID=$(echo "$CONSOLE" | python3 -c "import sys,json; print(json.load(sys.stdin)['id'])")
+          echo "Console ID: ${CONSOLE_ID}"
+
+          echo "📥 Installing dependencies..."
+          curl -s -X POST "${API}/consoles/${CONSOLE_ID}/send_input/" \
+            -H "${AUTH}" \
+            -H "Content-Type: application/json" \
+            -d "{\"input\": \"pip3 install -r ${REMOTE_DIR}/requirements.txt --user\\n\"}"
+          sleep 10
+
+          echo "Console output:"
+          curl -s "${API}/consoles/${CONSOLE_ID}/get_latest_output/" \
+            -H "${AUTH}"
 
           echo ""
           echo "🔐 Creating .env file..."
-          curl -s -X POST "${API}/bash/" \
+          ENVEOF="TELEGRAM_BOT_TOKEN=${{ secrets.TELEGRAM_BOT_TOKEN }}
+          GROQ_API_KEY=${{ secrets.GROQ_API_KEY }}
+          BOT_USERNAME=${{ secrets.BOT_USERNAME }}"
+          curl -s -X POST "${API}/consoles/${CONSOLE_ID}/send_input/" \
             -H "${AUTH}" \
             -H "Content-Type: application/json" \
-            -d "{\"command\": \"cat > ~/dumbledore/.env << 'ENVEOF'\nTELEGRAM_BOT_TOKEN=${TELEGRAM_BOT_TOKEN}\nGROQ_API_KEY=${GROQ_API_KEY}\nBOT_USERNAME=${BOT_USERNAME}\nENVEOF\"}"
+            -d "{\"input\": \"cat > ${REMOTE_DIR}/.env << 'ENVEOF'\\n${ENVEOF}\\nENVEOF\\n\"}"
+          sleep 2
+
+          echo "🔄 Restarting bot..."
+          curl -s -X POST "${API}/consoles/${CONSOLE_ID}/send_input/" \
+            -H "${AUTH}" \
+            -H "Content-Type: application/json" \
+            -d '{"input": "pkill -f run_bot.py || true\n"}'
+          sleep 2
+
+          curl -s -X POST "${API}/consoles/${CONSOLE_ID}/send_input/" \
+            -H "${AUTH}" \
+            -H "Content-Type: application/json" \
+            -d "{\"input\": \"cd ${REMOTE_DIR} && nohup python3 run_bot.py > bot.log 2>&1 &\\n\"}"
+          sleep 2
 
           echo ""
-          echo "🔄 Restarting bot..."
-          curl -s -X POST "${API}/bash/" \
-            -H "${AUTH}" \
-            -H "Content-Type: application/json" \
-            -d '{"command": "pkill -f run_bot.py || true"}'
+          echo "Final console output:"
+          curl -s "${API}/consoles/${CONSOLE_ID}/get_latest_output/" \
+            -H "${AUTH}"
+          echo ""
 
-          curl -s -X POST "${API}/bash/" \
-            -H "${AUTH}" \
-            -H "Content-Type: application/json" \
-            -d '{"command": "cd ~/dumbledore && nohup python3 run_bot.py > ~/dumbledore/bot.log 2>&1 &"}'
+          echo "🧹 Cleaning up console..."
+          curl -s -X DELETE "${API}/consoles/${CONSOLE_ID}/" \
+            -H "${AUTH}"
 
           echo ""
           echo "✅ Deployment complete!"
