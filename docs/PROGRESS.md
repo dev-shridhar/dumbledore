@@ -92,7 +92,6 @@ _No known bugs at this time._
 - **Telegram bot:** @dumbledore_arch_bot
 - **Owner GitHub:** dev-shridhar
 - **Collaborator:** bhargavhasabnis (admin)
-- **PythonAnywhere:** username `dumbledorearchbot` (free tier, no always-on tasks)
 - **LLM:** Groq API working, Ollama not set up locally yet
 
 ---

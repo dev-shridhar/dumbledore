@@ -1,4 +1,4 @@
-from brain import build_messages, get_prompt_version, get_system_prompt
+from dumbledore.brain import build_messages, get_prompt_version, get_system_prompt
 
 
 def test_get_prompt_version():

@@ -3,7 +3,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 
-from config import config
+from dumbledore.config import config
 
 
 @dataclass

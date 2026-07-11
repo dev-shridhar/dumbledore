@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from prompts import VERSION
-from prompts.ask_v1 import ASK_PROMPT_V1
-from prompts.challenge_v1 import CHALLENGE_PROMPT_V1
-from prompts.conclude_v1 import CONCLUDE_PROMPT_V1
+from dumbledore.prompts import VERSION
+from dumbledore.prompts.ask_v1 import ASK_PROMPT_V1
+from dumbledore.prompts.challenge_v1 import CHALLENGE_PROMPT_V1
+from dumbledore.prompts.conclude_v1 import CONCLUDE_PROMPT_V1
 
 PROMPTS = {
     "challenge": CHALLENGE_PROMPT_V1,

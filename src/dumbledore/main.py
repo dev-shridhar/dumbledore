@@ -11,10 +11,10 @@ from telegram.ext import (
     filters,
 )
 
-from brain import build_messages, get_prompt_version
-from config import config
-from llm import chat
-from memory import memory
+from dumbledore.brain import build_messages, get_prompt_version
+from dumbledore.config import config
+from dumbledore.llm import chat
+from dumbledore.memory import memory
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger(__name__)

@@ -1,4 +1,4 @@
-from memory import GroupMemory
+from dumbledore.memory import GroupMemory
 
 
 def test_add_and_get():
