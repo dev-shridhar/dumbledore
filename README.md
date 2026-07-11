@@ -1,9 +1,9 @@
-# Dumbeldore
+# Dumbledore
 
 Socratic AI bot for Telegram — challenges your thinking on system design, DSA & architecture.
 
 > *"It is our choices, Harry, that show what we truly are, far more than our abilities."*
-> — Albus Dumbeldore
+> — Albus Dumbledore
 
 ## Features
 
@@ -44,8 +44,8 @@ Group conversation happening
 
 1. Clone the repo
    ```bash
-   git clone https://github.com/dev-shridhar/dumbeldore.git
-   cd dumbeldore
+    git clone https://github.com/dev-shridhar/dumbledore.git
+   cd dumbledore
    ```
 
 2. Create your `.env` file
@@ -89,7 +89,7 @@ To update a prompt: create a new version file (e.g., `challenge_v2.py`) and upda
 ## Project Structure
 
 ```
-dumbeldore/
+dumbledore/
 ├── main.py              # Telegram handlers
 ├── brain.py             # Versioned prompt loader
 ├── llm.py               # Ollama + Groq fallback

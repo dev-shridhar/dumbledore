@@ -24,7 +24,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message:
         return
     await update.message.reply_text(
-        "Dumbeldore — System Design / DSA / Architecture Expert\n\n"
+        "Dumbledore — System Design / DSA / Architecture Expert\n\n"
         "I challenge your thinking, I don't give easy answers.\n\n"
         "**How to use me:**\n"
         "• Reply to any message in this group — I'll probe the reasoning\n"
@@ -132,7 +132,7 @@ def main() -> None:
         handle_group_message,
     ))
 
-    logger.info("Dumbeldore starting...")
+    logger.info("Dumbledore starting...")
     app.run_polling()
 
 
