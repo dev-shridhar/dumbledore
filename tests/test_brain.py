@@ -3,7 +3,7 @@ from brain import build_messages, get_prompt_version, get_system_prompt
 
 def test_get_prompt_version():
     version = get_prompt_version()
-    assert version == "1.0.0"
+    assert version == "2.0.0"
 
 
 def test_get_system_prompt_challenge():

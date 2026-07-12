@@ -19,6 +19,7 @@ def _ollama_chat(messages: list[dict[str, Any]]) -> str | None:
         response = client.chat.completions.create(
             model=config.ollama_model,
             messages=messages,  # type: ignore[arg-type]
+            max_tokens=config.max_tokens,
             timeout=config.llm_timeout,
         )
         return response.choices[0].message.content
@@ -39,6 +40,7 @@ def _groq_chat(messages: list[dict[str, Any]]) -> str | None:
         response = client.chat.completions.create(
             model=config.groq_model,
             messages=messages,  # type: ignore[arg-type]
+            max_tokens=config.max_tokens,
             timeout=config.llm_timeout,
         )
         return response.choices[0].message.content

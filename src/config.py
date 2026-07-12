@@ -20,6 +20,7 @@ class Config:
     groq_model: str = field(default_factory=lambda: os.getenv("GROQ_MODEL", "llama-3.1-8b-instant"))
 
     llm_timeout: int = int(os.getenv("LLM_TIMEOUT", "30"))
+    max_tokens: int = int(os.getenv("MAX_TOKENS", "500"))
     max_history: int = int(os.getenv("MAX_HISTORY", "50"))
     context_messages: int = int(os.getenv("CONTEXT_MESSAGES", "20"))
 
