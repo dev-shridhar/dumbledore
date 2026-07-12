@@ -2,7 +2,7 @@ name: Auto-Renew FPS.ms Server
 
 on:
   schedule:
-    - cron: "0 */25 * * *"
+    - cron: "0 */23 * * *"
   workflow_dispatch:
 
 jobs:
