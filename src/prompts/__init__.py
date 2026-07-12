@@ -1,4 +1,23 @@
 # Prompt versions - each mode has its own versioned prompt file.
 # To update a prompt: create a new version file and update VERSION in __init__.py
 
-VERSION = "1.0.0"
+VERSION = "2.0.0"
+
+from prompts.challenge_v1 import CHALLENGE_PROMPT_V1  # noqa: E402
+from prompts.challenge_v2 import CHALLENGE_PROMPT_V2  # noqa: E402
+from prompts.ask_v1 import ASK_PROMPT_V1  # noqa: E402
+from prompts.ask_v2 import ASK_PROMPT_V2  # noqa: E402
+from prompts.conclude_v1 import CONCLUDE_PROMPT_V1  # noqa: E402
+from prompts.conclude_v2 import CONCLUDE_PROMPT_V2  # noqa: E402
+
+PROMPT_MAP = {
+    "challenge": CHALLENGE_PROMPT_V2,
+    "ask": ASK_PROMPT_V2,
+    "conclude": CONCLUDE_PROMPT_V2,
+    "challenge_v1": CHALLENGE_PROMPT_V1,
+    "challenge_v2": CHALLENGE_PROMPT_V2,
+    "ask_v1": ASK_PROMPT_V1,
+    "ask_v2": ASK_PROMPT_V2,
+    "conclude_v1": CONCLUDE_PROMPT_V1,
+    "conclude_v2": CONCLUDE_PROMPT_V2,
+}

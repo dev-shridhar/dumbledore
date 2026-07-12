@@ -3,6 +3,7 @@ from __future__ import annotations
 import logging
 
 from telegram import Update
+from telegram.constants import ParseMode
 from telegram.ext import (
     Application,
     CommandHandler,
@@ -24,15 +25,16 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message:
         return
     await update.message.reply_text(
-        "Dumbledore — System Design / DSA / Architecture Expert\n\n"
+        "<b>Dumbledore</b> — System Design / DSA / Architecture Expert\n\n"
         "I challenge your thinking, I don't give easy answers.\n\n"
-        "**How to use me:**\n"
+        "<b>How to use me:</b>\n"
         "• Reply to any message in this group — I'll probe the reasoning\n"
-        "• `/ask <question>` — Direct expert answer\n"
-        "• `/conclude` — Summarize discussion with the correct answer\n"
-        "• `/clear` — Reset my memory of this group\n"
-        "• `/status` — Show bot status\n"
-        "• `/prompts` — Show current prompt versions"
+        "• <code>/ask &lt;question&gt;</code> — Direct expert answer\n"
+        "• <code>/conclude</code> — Summarize discussion with the correct answer\n"
+        "• <code>/clear</code> — Reset my memory of this group\n"
+        "• <code>/status</code> — Show bot status\n"
+        "• <code>/prompts</code> — Show current prompt versions",
+        parse_mode=ParseMode.HTML,
     )
 
 
@@ -40,7 +42,7 @@ async def handle_ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     if not update.message:
         return
     if not context.args:
-        await update.message.reply_text("Usage: `/ask <your question>`")
+        await update.message.reply_text("Usage: <code>/ask &lt;your question&gt;</code>", parse_mode=ParseMode.HTML)
         return
 
     query = " ".join(context.args)
@@ -51,7 +53,7 @@ async def handle_ask(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     ctx = memory.get_context(chat_id.id)
     messages = build_messages("ask", ctx, query)
     response = chat(messages)
-    await update.message.reply_text(response)
+    await update.message.reply_text(response, parse_mode=ParseMode.HTML)
 
 
 async def handle_conclude(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -68,7 +70,7 @@ async def handle_conclude(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     messages = build_messages("conclude", ctx)
     response = chat(messages)
-    await update.message.reply_text(response)
+    await update.message.reply_text(response, parse_mode=ParseMode.HTML)
 
 
 async def handle_clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -83,16 +85,21 @@ async def handle_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         return
     count = memory.get_message_count(update.effective_chat.id)
     await update.message.reply_text(
-        f"Messages in buffer: {count}\n"
-        f"Prompt version: {get_prompt_version()}\n"
-        f"Ollama model: {config.ollama_model}"
+        f"<b>Bot Status</b>\n\n"
+        f"• Messages in buffer: <code>{count}</code>\n"
+        f"• Prompt version: <code>{get_prompt_version()}</code>\n"
+        f"• Model: <code>{config.ollama_model}</code>",
+        parse_mode=ParseMode.HTML,
     )
 
 
 async def handle_prompts(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not update.message:
         return
-    await update.message.reply_text(f"Current prompt version: {get_prompt_version()}")
+    await update.message.reply_text(
+        f"Current prompt version: <code>{get_prompt_version()}</code>",
+        parse_mode=ParseMode.HTML,
+    )
 
 
 async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -110,7 +117,7 @@ async def handle_group_message(update: Update, context: ContextTypes.DEFAULT_TYP
             ctx = memory.get_context(msg.chat.id)
             messages = build_messages("challenge", ctx, f"The last message says: {msg.text}")
             response = chat(messages)
-            await msg.reply_text(response)
+            await msg.reply_text(response, parse_mode=ParseMode.HTML)
 
 
 def main() -> None:
