@@ -16,6 +16,7 @@ Track what's done, in progress, and what's next. Tag format: `[status] category:
 - [x] Bot responds in group chats when replied to
 - [x] `/ask`, `/conclude`, `/clear`, `/status`, `/prompts` commands working
 - [x] Groq fallback confirmed working locally
+- [x] Bot deployed and live in production
 
 ### Bug Fixes
 - [x] Spelling fixed: dumbeldore → dumbledore everywhere
@@ -37,14 +38,14 @@ Track what's done, in progress, and what's next. Tag format: `[status] category:
 - [x] GitHub repo created and renamed to `dumbledore`
 - [x] bhargavhasabnis invited as admin collaborator
 - [x] `start_bot.py` — Entry point that loads .env
+- [x] Bot deployed and live on production
+- [x] Source restructured into `src/` layout
 
 ---
 
 ## 🔄 In Progress
 
-### Deployment
-- [ ] Decide on hosting platform
-- [ ] Deploy bot and verify it responds in Telegram
+_None at this time._
 
 ---
 
