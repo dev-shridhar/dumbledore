@@ -8,7 +8,7 @@ def test_get_prompt_version():
 
 def test_get_system_prompt_challenge():
     prompt = get_system_prompt("challenge")
-    assert "Socratic" in prompt or "NEVER give the answer" in prompt
+    assert "COLLABORATE" in prompt or "thinking partner" in prompt or "Socratic" in prompt
 
 
 def test_get_system_prompt_ask():

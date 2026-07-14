@@ -3,11 +3,12 @@ from __future__ import annotations
 from prompts import VERSION
 from prompts.ask_v1 import ASK_PROMPT_V1
 from prompts.challenge_v1 import CHALLENGE_PROMPT_V1
+from prompts.challenge_v3 import CHALLENGE_PROMPT_V3
 from prompts.conclude_v1 import CONCLUDE_PROMPT_V1
 from prompts.learn_v1 import LEARN_PROMPT_V1
 
 PROMPTS = {
-    "challenge": CHALLENGE_PROMPT_V1,
+    "challenge": CHALLENGE_PROMPT_V3,
     "ask": ASK_PROMPT_V1,
     "conclude": CONCLUDE_PROMPT_V1,
     "learn": LEARN_PROMPT_V1,
